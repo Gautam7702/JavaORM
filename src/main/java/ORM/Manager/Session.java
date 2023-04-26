@@ -4,6 +4,8 @@ import ORM.Database.DB;
 import ORM.Database.DB_postgres;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+
 // Session class uses database apis to send queries.
 public class Session {
     Connection con;
@@ -13,17 +15,19 @@ public class Session {
         this.con = con;
     }
 
-    <T> boolean save(T obj){
+    public <T> boolean save(T obj) throws Exception{
         //TODO: save the given obj in database.
+        PreparedStatement p = con.prepareStatement(db.save(obj));
+        p.execute();
         return true;
     }
 
-    <T> boolean delete(T obj){
+    public <T> boolean delete(T obj){
         //TODO: delete the given obj in database.
         return true;
     }
 
-    <T> boolean update(T obj){
+    public <T> boolean update(T obj){
         //TODO: update the given obj in database.
         return true;
     }
