@@ -6,11 +6,11 @@ import ORM.ClassTable.TYPES;
 import ORM.ClassTable.Table;
 
 @Table
-public class User {
+public class Tester {
     Column ID;
     Column name;
 
-    User(int ID,String name){
+    Tester(int ID,String name){
         this.ID = new Column(TYPES.INTEGER,ID);
         this.name = new Column(TYPES.STRING,name);
     }

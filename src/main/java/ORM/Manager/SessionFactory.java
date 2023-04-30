@@ -5,10 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+import java.sql.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.annotation.Annotation;
@@ -61,28 +60,55 @@ public class SessionFactory {
         }
         return classes;
     }
-        private <T> void createClassTable(Class<T> cl){
-            //TODO: SANYAM
+        private <T> void createClassTable(Class<T> clazz, Connection conn) throws SQLException, IllegalAccessException {
+            String tableName = clazz.getSimpleName().toLowerCase();
+            StringBuilder createTableSql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
+            Field[] fields = clazz.getDeclaredFields();
+            for (int i = 0; i < fields.length; i++) {
+                Field field = fields[i];
+                String fieldName = field.getName().toLowerCase();
+                String fieldType = "";
+                if (field.getType() == int.class || field.getType() == Integer.class) {
+                    fieldType = "INT";
+                } else if (field.getType() == float.class || field.getType() == Float.class) {
+                    fieldType = "FLOAT";
+                } else if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+                    fieldType = "BOOLEAN";
+                } else if (field.getType() == String.class) {
+                    fieldType = "VARCHAR(255)";
+                }
+                if (!fieldType.isEmpty()) {
+                    createTableSql.append(fieldName).append(" ").append(fieldType);
+                    if (i < fields.length - 1) {
+                        createTableSql.append(", ");
+                    }
+                }
+            }
+            createTableSql.append(")");
+            Statement stmt = conn.createStatement();
+            // Create the table
+            stmt.executeUpdate(createTableSql.toString());
         }
 
         private void createTable() throws Exception{
-            Connection con;
+            Connection con=null;
             //TODO: create table
             try {
+                System.out.println(config.username);
                 con = DriverManager.getConnection(config.url, config.username, config.password);
                 logger.info("Connection established");
-                PreparedStatement p = con.prepareStatement("CREATE TABLE DEPARTMENT(\n" +
-                        "   ID INT PRIMARY KEY      NOT NULL,\n" +
-                        "   DEPT           CHAR(50) NOT NULL,\n" +
-                        "   EMP_ID         INT      NOT NULL\n" +
-                        ");\n");
-                p.execute();
+//                PreparedStatement p = con.prepareStatement("CREATE TABLE DEPARTMENT(\n" +
+//                        "   ID INT PRIMARY KEY      NOT NULL,\n" +
+//                        "   DEPT           CHAR(50) NOT NULL,\n" +
+//                        "   EMP_ID         INT      NOT NULL\n" +
+//                        ");\n");
+//                p.execute();
             }catch (Exception e){
                 logger.error("Error connecting to database. Message = " + e.toString());
             }
             List<Class<?>> tableClass =findAnnotatedClasses(packageName);
             for(Class<?> c: tableClass){
-                createClassTable(c);
+                createClassTable(c,con);
             }
         }
         public Session getSession() throws Exception{
