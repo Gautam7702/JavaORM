@@ -1,17 +1,18 @@
 package ORM.Manager;
 
+import ORM.ClassTable.PrimaryKey;
 import ORM.ClassTable.Table;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+import java.sql.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.annotation.Annotation;
+import ORM.ClassTable.Column;
 
 public class SessionFactory {
         private static final Logger logger = LogManager.getLogger(SessionFactory.class);
@@ -61,29 +62,84 @@ public class SessionFactory {
         }
         return classes;
     }
-        private <T> void createClassTable(Class<T> cl){
-            //TODO: SANYAM
+        public <T> void createClassTable(Class<T> cl,Connection con) throws SQLException {
+            String tableName = cl.getSimpleName().toLowerCase();
+            StringBuilder createTableSql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + "(");
+            //TODO: if same table name exists but format different then remove it and add this.
+            //TODO: the class should have atleast one primary key.
+            boolean typeError = false;
+            Field[] fields = cl.getDeclaredFields();
+            boolean hasPrimaryKey = false;
+            int len = 0;
+            for(int i=0;i<fields.length;i++){
+                if(fields[i].isAnnotationPresent(Column.class))
+                    len = len+1;
+            }
+            int count =0;
+            for (int i = 0; i < fields.length; i++) {
+                Field field = fields[i];
+                String fieldName = field.getName().toLowerCase();
+                String fieldType = "";
+                boolean isPrimaryKey = false;
+                boolean typeMatch = true;
+                if(field.isAnnotationPresent(Column.class)){
+                    Column anno = field.getAnnotation(Column.class);
+                    if(field.getType()==int.class)
+                        fieldType = "INT";
+                    else if(field.getType()==String.class)
+                        fieldType = "VARCHAR";
+                    else if(field.getType()==Float.class)
+                        fieldType = "FLOAT";
+                    else if(field.getType()==Boolean.class)
+                        fieldType = "BOOLEAN";
+                    else if(field.getType()==Date.class){
+                        fieldType = "date";
+                    }
+                    else if(field.getType()==Time.class||field.getType()== Timestamp.class) {
+                        fieldType = "TIME";
+                    }
+                    else{
+                        fieldType = "VARCHAR";
+                        System.out.println("Attribute type mentioned does not match in " + tableName + " for attribute " + fieldName +". Converting it to as String.");
+                    }
+                    if(field.isAnnotationPresent(PrimaryKey.class))
+                        isPrimaryKey = true;
+                }
+                if(isPrimaryKey){
+                    hasPrimaryKey = true;
+                }
+                createTableSql.append(fieldName).append(" ").append(fieldType);
+                if(isPrimaryKey)
+                    createTableSql.append(" PRIMARY KEY");
+                if (i < (len- 1))
+                    createTableSql.append(", ");
+                count = count+1;
+            }
+            if(hasPrimaryKey) {
+                createTableSql.append(")");
+                System.out.println(createTableSql);
+//                Statement stmt = con.createStatement();
+//                stmt.executeUpdate(createTableSql.toString());
+            }else{
+                System.out.println("There should be atleast one primary key in the table " + tableName);
+                throw new SQLException("There should be atleast one primary key in the table " + tableName);
+            }
         }
 
-        private void createTable() throws Exception{
+        public void createTable() throws Exception{
             Connection con;
             //TODO: create table
             try {
                 con = DriverManager.getConnection(config.url, config.username, config.password);
                 logger.info("Connection established");
-                PreparedStatement p = con.prepareStatement("CREATE TABLE DEPARTMENT(\n" +
-                        "   ID INT PRIMARY KEY      NOT NULL,\n" +
-                        "   DEPT           CHAR(50) NOT NULL,\n" +
-                        "   EMP_ID         INT      NOT NULL\n" +
-                        ");\n");
-                p.execute();
+                List<Class<?>> tableClass =findAnnotatedClasses(packageName);
+                for(Class<?> c: tableClass){
+                    createClassTable(c,con);
+                }
             }catch (Exception e){
                 logger.error("Error connecting to database. Message = " + e.toString());
             }
-            List<Class<?>> tableClass =findAnnotatedClasses(packageName);
-            for(Class<?> c: tableClass){
-                createClassTable(c);
-            }
+
         }
         public Session getSession() throws Exception{
             //TODO: creates a new thread,create a session object on that and returns session object.

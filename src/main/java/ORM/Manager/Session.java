@@ -15,21 +15,46 @@ public class Session {
         this.con = con;
     }
 
-    public <T> boolean save(T obj) throws Exception{
+    public <T> boolean insert(T obj){
         //TODO: save the given obj in database.
-        PreparedStatement p = con.prepareStatement(db.save(obj));
-        p.execute();
-        return true;
+        try {
+            PreparedStatement p = con.prepareStatement(db.insert(obj));
+            p.execute();
+            return true;
+        }
+        catch (Exception e){
+            System.out.println("Error in inserting the object. Error = " + e);
+            return false;
+        }
     }
 
     public <T> boolean delete(T obj){
         //TODO: delete the given obj in database.
-        return true;
+        try {
+            PreparedStatement p = con.prepareStatement(db.delete(obj));
+            p.execute();
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println("Error in deleting object Message = "  + e.toString());
+            return false;
+        }
+
     }
 
     public <T> boolean update(T obj){
         //TODO: update the given obj in database.
-        return true;
+        try {
+            db.update(obj);
+            PreparedStatement p = con.prepareStatement(db.update(obj));
+            p.execute();
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println("Error in updating object Message = "  + e);
+            return false;
+        }
+
     }
 
 }
