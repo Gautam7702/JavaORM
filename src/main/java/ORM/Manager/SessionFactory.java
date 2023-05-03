@@ -166,7 +166,7 @@ public class SessionFactory {
                 for(Class<?> clazz : findAnnotatedClasses(packageName))
                 {
                     String tableName = clazz.getSimpleName().toLowerCase();
-                    StringBuilder delete_sql=new StringBuilder("DROP TABLE "+tableName);
+                    StringBuilder delete_sql=new StringBuilder("DROP TABLE IF EXISTS "+tableName);
                     Statement stmt = conn.createStatement();
                     System.out.println(delete_sql.toString());
                     stmt.executeUpdate(delete_sql.toString());
