@@ -5,6 +5,8 @@ import ORM.Database.DB_postgres;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,5 +73,25 @@ public class Session {
 //
 //        return queryResult;
 //    }
+
+    public <T> boolean doesExists(T obj){
+        //TODO: update the given obj in database.
+        try {
+            Statement p = con.createStatement();
+            String query=db.doesExist(obj);
+            ResultSet rs=p.executeQuery(query);
+            String val="";
+            while(rs.next())
+            {
+                val=rs.getString(1);
+            }
+            if(val.equals("0")){return false;}
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println("Error in updating object Message = "  + e);
+            return false;
+        }
+    }
 
 }

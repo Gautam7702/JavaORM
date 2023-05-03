@@ -198,8 +198,44 @@ public class DB_postgres implements DB{
            throw new Exception("Error creating update query. Message = "+e);
         }
     }
-    public <T> String doesExist(T obj) {
+    public <T> String doesExist(T obj) throws IllegalAccessException {
         //TODO: T obj's primaryKEY exists.
-        return "";
+        Class<?> cl=obj.getClass();
+        String tableName = cl.getSimpleName().toLowerCase();
+        StringBuilder query=new StringBuilder("select count(*) from "+tableName+" where ");
+        Field[] fields = cl.getDeclaredFields();
+        int flag=0;
+        for(int i=0;i< fields.length;i++){
+            Field field = fields[i];
+            field.setAccessible(true);
+            if(field.isAnnotationPresent(Column.class)){
+                if(field.isAnnotationPresent(PrimaryKey.class))
+                {
+                    if(flag==1)
+                    {
+                        query.append(" and ");
+                    }
+                    else{flag=1;}
+                    query.append(field.getName().toLowerCase()+" ");
+                    if (field.getType() == int.class)
+                        query.append("=" + field.getInt(obj));
+                    else if (field.getType() == String.class)
+                        query.append("=" + "'" + (String) field.get(obj) + "'");
+                    else if (field.getType() == Float.class)
+                        query.append("=" + (Float) field.get(obj));
+                    else if (field.getType() == Boolean.class || field.getType() == boolean.class)
+                        query.append("=" + (Boolean) field.get(obj));
+                    else if (field.getType() == Date.class)
+                        query.append("=" + "'" + (Date) field.get(obj) + "'");
+                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
+                        query.append("=" + "'" + (Timestamp) field.get(obj) + "'");
+                    else
+                        query.append("=" + "'" + (String) field.get(obj).toString() + "'");
+                }
+            }
+        }
+        query.append(" ;");
+        System.out.println(query.toString());
+        return query.toString();
     }
 }
