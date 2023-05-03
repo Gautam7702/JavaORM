@@ -13,6 +13,7 @@ public class Users{
     @Column
     @PrimaryKey
     int ID;
+    @PrimaryKey
     @Column
     String name;
     @Column

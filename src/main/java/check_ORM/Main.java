@@ -13,10 +13,11 @@ public class Main {
         SessionFactory sF = config.getFactory();
         Users u = new Users(10,"Gautam",false,new Date(622790105000L),Timestamp.valueOf("2018-09-01 09:01:15"),50.5f);
         Session s = sF.getSession();
-//        s.save(u);
-//        u.name = "HElo";
-//        s.update(u);
-//        s.delete(u);
+        s.insert(u);
+        u.current_balance = 10.0f;
+        s.update(u);
+        //TODO: CHECK FOR NULL
+        s.delete(u);
     }
 
 }

@@ -81,7 +81,6 @@ public class SessionFactory {
                 String fieldName = field.getName().toLowerCase();
                 String fieldType = "";
                 boolean isPrimaryKey = false;
-                boolean typeMatch = true;
                 if(field.isAnnotationPresent(Column.class)) {
                     Column anno = field.getAnnotation(Column.class);
                     if (field.getType() == int.class)
@@ -92,11 +91,11 @@ public class SessionFactory {
                         fieldType = "FLOAT";
                     else if (field.getType() == Boolean.class || field.getType() == boolean.class)
                         fieldType = "BOOLEAN";
-                    else if (field.getType() == Date.class) {
+                    else if (field.getType() == Date.class)
                         fieldType = "date";
-                    } else if (field.getType() == Time.class || field.getType() == Timestamp.class) {
+                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
                         fieldType = "TIME";
-                    } else {
+                    else {
                         fieldType = "VARCHAR";
                         System.out.println("Attribute type mentioned does not match in " + tableName + " for attribute " + fieldName + ". Converting it to as String.");
                     }
@@ -108,7 +107,7 @@ public class SessionFactory {
                     createTableSql.append(fieldName).append(" ").append(fieldType);
                     if (isPrimaryKey)
                         createTableSql.append(" PRIMARY KEY");
-                    if (i < (len - 1))
+                    if (count < (len - 1))
                         createTableSql.append(", ");
                     count = count + 1;
                 }
