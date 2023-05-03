@@ -24,6 +24,8 @@ public class Users{
     @Column
     Float current_balance;
 
+    int x;
+
 
     public Users(int ID, String name, Boolean isSpcl, Date dob, Timestamp joining_time, Float current_balance) {
         this.ID = ID;

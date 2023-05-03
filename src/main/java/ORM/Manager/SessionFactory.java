@@ -82,44 +82,42 @@ public class SessionFactory {
                 String fieldType = "";
                 boolean isPrimaryKey = false;
                 boolean typeMatch = true;
-                if(field.isAnnotationPresent(Column.class)){
+                if(field.isAnnotationPresent(Column.class)) {
                     Column anno = field.getAnnotation(Column.class);
-                    if(field.getType()==int.class)
+                    if (field.getType() == int.class)
                         fieldType = "INT";
-                    else if(field.getType()==String.class)
+                    else if (field.getType() == String.class)
                         fieldType = "VARCHAR";
-                    else if(field.getType()==Float.class)
+                    else if (field.getType() == Float.class)
                         fieldType = "FLOAT";
-                    else if(field.getType()==Boolean.class)
+                    else if (field.getType() == Boolean.class || field.getType() == boolean.class)
                         fieldType = "BOOLEAN";
-                    else if(field.getType()==Date.class){
+                    else if (field.getType() == Date.class) {
                         fieldType = "date";
-                    }
-                    else if(field.getType()==Time.class||field.getType()== Timestamp.class) {
+                    } else if (field.getType() == Time.class || field.getType() == Timestamp.class) {
                         fieldType = "TIME";
-                    }
-                    else{
+                    } else {
                         fieldType = "VARCHAR";
-                        System.out.println("Attribute type mentioned does not match in " + tableName + " for attribute " + fieldName +". Converting it to as String.");
+                        System.out.println("Attribute type mentioned does not match in " + tableName + " for attribute " + fieldName + ". Converting it to as String.");
                     }
-                    if(field.isAnnotationPresent(PrimaryKey.class))
+                    if (field.isAnnotationPresent(PrimaryKey.class))
                         isPrimaryKey = true;
+                    if (isPrimaryKey) {
+                        hasPrimaryKey = true;
+                    }
+                    createTableSql.append(fieldName).append(" ").append(fieldType);
+                    if (isPrimaryKey)
+                        createTableSql.append(" PRIMARY KEY");
+                    if (i < (len - 1))
+                        createTableSql.append(", ");
+                    count = count + 1;
                 }
-                if(isPrimaryKey){
-                    hasPrimaryKey = true;
-                }
-                createTableSql.append(fieldName).append(" ").append(fieldType);
-                if(isPrimaryKey)
-                    createTableSql.append(" PRIMARY KEY");
-                if (i < (len- 1))
-                    createTableSql.append(", ");
-                count = count+1;
             }
             if(hasPrimaryKey) {
                 createTableSql.append(")");
                 System.out.println(createTableSql);
-//                Statement stmt = con.createStatement();
-//                stmt.executeUpdate(createTableSql.toString());
+                Statement stmt = con.createStatement();
+                stmt.executeUpdate(createTableSql.toString());
             }else{
                 System.out.println("There should be atleast one primary key in the table " + tableName);
                 throw new SQLException("There should be atleast one primary key in the table " + tableName);
