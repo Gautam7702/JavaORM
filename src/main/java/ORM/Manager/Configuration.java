@@ -18,9 +18,17 @@ public class Configuration {
     private Config configObj;
 
     private String packageName;
+
+    private boolean reset = false;
     public Configuration(String configPath, String packageName){
         this.configPath = configPath;
         this.packageName = packageName;
+        config();
+    }
+    public Configuration(String configPath, String packageName,boolean reset){
+        this.configPath = configPath;
+        this.packageName = packageName;
+        this.reset = reset;
         config();
     }
     private void config(){
@@ -42,6 +50,6 @@ public class Configuration {
 
 
     public SessionFactory getFactory() throws Exception{
-        return new SessionFactory(configObj,this.packageName);
+        return new SessionFactory(configObj,this.packageName,this.reset);
     }
 }

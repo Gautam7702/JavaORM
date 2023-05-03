@@ -5,6 +5,8 @@ import ORM.Database.DB_postgres;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.List;
 
 // Session class uses database apis to send queries.
 public class Session {
@@ -54,7 +56,20 @@ public class Session {
             System.out.println("Error in updating object Message = "  + e);
             return false;
         }
-
     }
+//    public<T> List<T> getAll(Class<T> cl){
+//        String tableName = cl.getName().toLowerCase();
+//        List<T> queryResult = new ArrayList<>();
+//        String query = "SELECT * FROM " +tableName;
+//        try{
+//            PreparedStatement p = con.prepareStatement(db.update(obj));
+//            p.execute();
+//        }catch (Exception e){
+//            System.out.println("Error in getting all objects. Message  = "+e.toString());
+//        }
+//
+//
+//        return queryResult;
+//    }
 
 }

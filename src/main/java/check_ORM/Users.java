@@ -13,12 +13,13 @@ public class Users{
     @Column
     @PrimaryKey
     int ID;
-    @PrimaryKey
+
     @Column
     String name;
     @Column
     Boolean isSpcl;
     @Column
+    @PrimaryKey
     Date dob;
     @Column
     Timestamp joining_time;

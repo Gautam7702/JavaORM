@@ -14,6 +14,7 @@ public class UsersFaulty {
     @Column
     Float ID;
     @Column
+    @PrimaryKey
     int name;
     @Column
     Date isSpcl;
@@ -22,7 +23,7 @@ public class UsersFaulty {
     @Column
     String joining_time;
     @Column
-    @PrimaryKey
+
     boolean current_balance;
     @Column
     Config conf;

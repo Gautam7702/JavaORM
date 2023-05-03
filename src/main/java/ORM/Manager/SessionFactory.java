@@ -18,12 +18,20 @@ public class SessionFactory {
         private static final Logger logger = LogManager.getLogger(SessionFactory.class);
         Config config;
         private String packageName;
+        boolean reset = false;
 
         SessionFactory(Config configObj,String packageName) throws  Exception{
             this.config = configObj;
             this.packageName = packageName;
             createTable();
-
+        }
+        SessionFactory(Config configObj,String packageName,boolean reset) throws  Exception{
+            this.config = configObj;
+            this.packageName = packageName;
+            if(reset==true){
+                reset();
+            }
+            createTable();
         }
 
     private static List<Class<?>> findAnnotatedClasses(String packageName)
@@ -71,11 +79,15 @@ public class SessionFactory {
             Field[] fields = cl.getDeclaredFields();
             boolean hasPrimaryKey = false;
             int len = 0;
+            int primLen  =0;
             for(int i=0;i<fields.length;i++){
-                if(fields[i].isAnnotationPresent(Column.class))
-                    len = len+1;
+                if(fields[i].isAnnotationPresent(Column.class)) {
+                    len = len + 1;
+                    if(fields[i].isAnnotationPresent(PrimaryKey.class))
+                        primLen = primLen+1;
+                }
             }
-            int count =0;
+            String pk = "PRIMARY KEY (";
             for (int i = 0; i < fields.length; i++) {
                 Field field = fields[i];
                 String fieldName = field.getName().toLowerCase();
@@ -99,21 +111,23 @@ public class SessionFactory {
                         fieldType = "VARCHAR";
                         System.out.println("Attribute type mentioned does not match in " + tableName + " for attribute " + fieldName + ". Converting it to as String.");
                     }
-                    if (field.isAnnotationPresent(PrimaryKey.class))
-                        isPrimaryKey = true;
-                    if (isPrimaryKey) {
-                        hasPrimaryKey = true;
-                    }
                     createTableSql.append(fieldName).append(" ").append(fieldType);
-                    if (isPrimaryKey)
-                        createTableSql.append(" PRIMARY KEY");
-                    if (count < (len - 1))
-                        createTableSql.append(", ");
-                    count = count + 1;
+                    createTableSql.append(", ");
                 }
             }
-            if(hasPrimaryKey) {
-                createTableSql.append(")");
+            int count=0;
+            for(int i=0;i< fields.length;i++){
+                if(fields[i].isAnnotationPresent(Column.class) && fields[i].isAnnotationPresent(PrimaryKey.class)){
+                    pk = pk  + fields[i].getName().toLowerCase();
+                    if(count< primLen-1){
+                        pk+= ",";
+                    }
+                    count = count+1;
+                }
+            }
+            pk+= ")";
+            if(primLen!=0) {
+                createTableSql.append(pk+")");
                 System.out.println(createTableSql);
                 Statement stmt = con.createStatement();
                 stmt.executeUpdate(createTableSql.toString());
@@ -143,5 +157,22 @@ public class SessionFactory {
             Connection con = DriverManager.getConnection(config.url, config.username, config.password);
             Session s = new Session(con);
             return s;
+        }
+        public void reset() throws Exception {
+            List<Class<?>> all=findAnnotatedClasses(packageName);
+            Connection conn;
+            try {
+                conn = DriverManager.getConnection(config.url, config.username, config.password);
+                for(Class<?> clazz : findAnnotatedClasses(packageName))
+                {
+                    String tableName = clazz.getSimpleName().toLowerCase();
+                    StringBuilder delete_sql=new StringBuilder("DROP TABLE "+tableName);
+                    Statement stmt = conn.createStatement();
+                    System.out.println(delete_sql.toString());
+                    stmt.executeUpdate(delete_sql.toString());
+                }
+            }catch (Exception e){
+                logger.error("Error connecting to database. Message = " + e.toString());
+            }
         }
 }
