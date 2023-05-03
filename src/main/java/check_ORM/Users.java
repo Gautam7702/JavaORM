@@ -6,6 +6,7 @@ import ORM.ClassTable.PrimaryKey;
 import ORM.ClassTable.Table;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 @Table
@@ -22,14 +23,14 @@ public class Users{
     @PrimaryKey
     Date dob;
     @Column
-    Timestamp joining_time;
+    Time joining_time;
     @Column
     Float current_balance;
 
     int x;
 
 
-    public Users(int ID, String name, Boolean isSpcl, Date dob, Timestamp joining_time, Float current_balance) {
+    public Users(int ID, String name, Boolean isSpcl, Date dob, Time joining_time, Float current_balance) {
         this.ID = ID;
         this.name = name;
         this.isSpcl = isSpcl;

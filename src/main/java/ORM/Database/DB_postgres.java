@@ -41,8 +41,8 @@ public class DB_postgres implements DB{
                             valuesSql.append((Boolean)field.get(obj));
                         else if (field.getType() == Date.class)
                             valuesSql.append("'"+(Date) field.get(obj)+"'");
-                        else if (field.getType() == Time.class || field.getType() == Timestamp.class)
-                            valuesSql.append("'"+(Timestamp) field.get(obj)+"'");
+                        else if (field.getType() == Time.class)
+                            valuesSql.append("'"+(Time) field.get(obj)+"'");
                         else{
                             valuesSql.append("'"+field.get(obj).toString()+"'");
                         }
@@ -97,8 +97,8 @@ public class DB_postgres implements DB{
                         delete_query.append("=" + (Boolean)field.get(obj));
                     else if (field.getType() == Date.class)
                         delete_query.append("=" + "'"+(Date) field.get(obj)+"'");
-                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
-                        delete_query.append("=" + "'"+(Timestamp) field.get(obj)+"'");
+                    else if (field.getType() == Time.class)
+                        delete_query.append("=" + "'"+(Time) field.get(obj)+"'");
                     else{
                         delete_query.append("=" + "'"+(String) field.get(obj).toString()+"'");
                     }
@@ -150,8 +150,8 @@ public class DB_postgres implements DB{
                         update_query.append((Boolean)field.get(obj));
                     else if (field.getType() == Date.class)
                         update_query.append("'"+(Date) field.get(obj)+"'");
-                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
-                        update_query.append("'"+(Timestamp) field.get(obj)+"'");
+                    else if (field.getType() == Time.class)
+                        update_query.append("'"+(Time) field.get(obj)+"'");
                     else{
                         update_query.append("'" + (String)field.get(obj).toString()+"'");
                     }
@@ -181,8 +181,8 @@ public class DB_postgres implements DB{
                         update_query.append("=" + (Boolean) field.get(obj));
                     else if (field.getType() == Date.class)
                         update_query.append("=" + "'" + (Date) field.get(obj) + "'");
-                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
-                        update_query.append("=" + "'" + (Timestamp) field.get(obj) + "'");
+                    else if (field.getType() == Time.class)
+                        update_query.append("=" + "'" + (Time) field.get(obj) + "'");
                     else
                         update_query.append("=" + "'" + (String) field.get(obj).toString() + "'");
                     if (count < primLen - 1) {

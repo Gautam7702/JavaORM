@@ -99,13 +99,13 @@ public class SessionFactory {
                         fieldType = "INT";
                     else if (field.getType() == String.class)
                         fieldType = "VARCHAR";
-                    else if (field.getType() == Float.class)
+                    else if (field.getType() == Float.class || field.getType() == float.class)
                         fieldType = "FLOAT";
                     else if (field.getType() == Boolean.class || field.getType() == boolean.class)
                         fieldType = "BOOLEAN";
                     else if (field.getType() == Date.class)
                         fieldType = "date";
-                    else if (field.getType() == Time.class || field.getType() == Timestamp.class)
+                    else if (field.getType() == Time.class)
                         fieldType = "TIME";
                     else {
                         fieldType = "VARCHAR";
