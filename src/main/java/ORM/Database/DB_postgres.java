@@ -15,7 +15,6 @@ public class DB_postgres implements DB{
         StringBuilder insertSql = new StringBuilder("INSERT INTO " + tableName + " (");
         StringBuilder valuesSql = new StringBuilder("VALUES (");
         int len = 0;
-
         for(int i=0;i<fields.length;i++){
             if(fields[i].isAnnotationPresent(Column.class))
                 len = len+1;
@@ -26,31 +25,28 @@ public class DB_postgres implements DB{
             if (field.isAnnotationPresent(Column.class)) {
                 String fieldName = field.getName().toLowerCase();
                 field.setAccessible(true);
-                Object value = field.get(obj);
-                if (value != null) {
-                    String fieldType = "";
-                    if (field.isAnnotationPresent(Column.class)) {
-                        Column anno = field.getAnnotation(Column.class);
-                        if (field.getType() == int.class)
-                            valuesSql.append(field.getInt(obj));
-                        else if (field.getType() == String.class)
-                            valuesSql.append("'" + (String) field.get(obj) + "'");
-                        else if (field.getType() == Float.class)
-                            valuesSql.append((Float)field.get(obj));
-                        else if (field.getType() == Boolean.class || field.getType() == boolean.class)
-                            valuesSql.append((Boolean)field.get(obj));
-                        else if (field.getType() == Date.class)
-                            valuesSql.append("'"+(Date) field.get(obj)+"'");
-                        else if (field.getType() == Time.class)
-                            valuesSql.append("'"+(Time) field.get(obj)+"'");
-                        else{
-                            valuesSql.append("'"+field.get(obj).toString()+"'");
-                        }
-                        insertSql.append(fieldName);
-                        if (count < len - 1) {
-                            insertSql.append(", ");
-                            valuesSql.append(", ");
-                        }
+                String fieldType = "";
+                if (field.isAnnotationPresent(Column.class)) {
+                    Column anno = field.getAnnotation(Column.class);
+                    if(field.get(obj)==null){
+                        valuesSql.append("NULL");
+                    }
+                    else if (field.getType() == int.class)
+                        valuesSql.append(field.getInt(obj));
+                    else if (field.getType() == String.class)
+                        valuesSql.append("'" + (String) field.get(obj) + "'");
+                    else if (field.getType() == Float.class)
+                        valuesSql.append((Float)field.get(obj));
+                    else if (field.getType() == Boolean.class || field.getType() == boolean.class)
+                        valuesSql.append((Boolean)field.get(obj));
+                    else if (field.getType() == Date.class)
+                        valuesSql.append("'"+(Date) field.get(obj)+"'");
+                    else if (field.getType() == Time.class)
+                        valuesSql.append("'"+(Time) field.get(obj)+"'");
+                    insertSql.append(fieldName);
+                    if (count < len - 1) {
+                        insertSql.append(", ");
+                        valuesSql.append(", ");
                     }
                 }
                 count=count+1;
@@ -99,9 +95,6 @@ public class DB_postgres implements DB{
                         delete_query.append("=" + "'"+(Date) field.get(obj)+"'");
                     else if (field.getType() == Time.class)
                         delete_query.append("=" + "'"+(Time) field.get(obj)+"'");
-                    else{
-                        delete_query.append("=" + "'"+(String) field.get(obj).toString()+"'");
-                    }
                 }
                 if (count < primLen- 1) {
                     delete_query.append(" AND ");
@@ -238,4 +231,11 @@ public class DB_postgres implements DB{
         System.out.println(query.toString());
         return query.toString();
     }
+
+    public <T> String getAll(Class <T> cl){
+        String tableName = cl.getSimpleName().toLowerCase();
+        String query = "SELECT * FROM " + tableName;
+        return query;
+    }
+
 }

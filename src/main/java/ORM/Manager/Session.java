@@ -1,6 +1,7 @@
 package ORM.Manager;
 
 import ORM.ClassTable.Column;
+import ORM.ClassTable.Table;
 import ORM.Database.DB;
 import ORM.Database.DB_postgres;
 
@@ -19,13 +20,33 @@ public class Session {
     Connection con;
     DB db = new DB_postgres();
 
-    Session(Connection con){
+
+
+    Session(Connection con) throws SQLException {
         this.con = con;
+        con.setAutoCommit(false);
+    }
+    protected void finalize() throws SQLException {
+      con.rollback();
     }
 
+    public void commit() throws SQLException {
+        con.commit();
+    }
+    public void rollback() throws SQLException {
+        con.rollback();
+    }
     public <T> boolean insert(T obj){
         //TODO: save the given obj in database.
         try {
+            if(!obj.getClass().isAnnotationPresent(Table.class)){
+                System.out.println("Object class "+obj.getClass().getSimpleName().toLowerCase() + " is not annotated with @Table.");
+                return false;
+            }
+            if(doesExists(obj)){
+                System.out.println("Object already exits in "+ obj.getClass().getSimpleName().toLowerCase());
+                return false;
+            }
             PreparedStatement p = con.prepareStatement(db.insert(obj));
             p.execute();
             return true;
@@ -39,6 +60,11 @@ public class Session {
     public <T> boolean delete(T obj){
         //TODO: delete the given obj in database.
         try {
+            if(!obj.getClass().isAnnotationPresent(Table.class)){
+                System.out.println("Object class "+obj.getClass().getSimpleName().toLowerCase() + " is not annotated with @Table.");
+                return false;
+            }
+
             PreparedStatement p = con.prepareStatement(db.delete(obj));
             p.execute();
             return true;
@@ -53,6 +79,10 @@ public class Session {
     public <T> boolean update(T obj){
         //TODO: update the given obj in database.
         try {
+            if(!obj.getClass().isAnnotationPresent(Table.class)){
+                System.out.println("Object class "+obj.getClass().getSimpleName().toLowerCase() + " is not annotated with @Table.");
+                return false;
+            }
             db.update(obj);
             PreparedStatement p = con.prepareStatement(db.update(obj));
             p.execute();
@@ -64,9 +94,12 @@ public class Session {
         }
     }
     public<T> List<T> getAll(Class<T> cl){
-        String tableName = cl.getSimpleName().toLowerCase();
+        if(!cl.isAnnotationPresent(Table.class)){
+            System.out.println("Object class "+cl.getSimpleName().toLowerCase() + " is not annotated with @Table.");
+            return new ArrayList<>();
+        }
         List<T> queryResult = new ArrayList<>();
-        String query = "SELECT * FROM " +tableName;
+        String query = db.getAll(cl);
 
         try{
             Statement statement = con.createStatement();
@@ -91,9 +124,15 @@ public class Session {
                 String columnName = metaData.getColumnName(i);
                 Object columnValue = resultSet.getObject(i);
                 for(int j=0;j< fields.length;j++){
-                    if(fields[j].getName().toLowerCase().equals(columnName) && fields[i].isAnnotationPresent(Column.class)){
+                    if(fields[j].getName().toLowerCase().equals(columnName) && fields[j].isAnnotationPresent(Column.class)){
                         fields[j].setAccessible(true);
-                        fields[j].set(object, columnValue);
+                        if(fields[j].getType()==float.class || fields[j].getType()==Float.class) {
+                            Double dv  = (Double)columnValue;
+                            float  fv = dv.floatValue();
+                            fields[j].set(object, fv);
+                        }
+                        else
+                            fields[j].set(object, columnValue);
                         break;
                     }
                 }
@@ -140,5 +179,36 @@ public class Session {
         else{
             throw new IllegalArgumentException("Unsupported type: " + type);
         }
+    }
+    public <T> boolean doesExists(T obj){
+        if(!obj.getClass().isAnnotationPresent(Table.class)){
+            System.out.println("Object class "+obj.getClass().getSimpleName().toLowerCase() + " is not annotated with @Table.");
+            return false;
+        }
+        //TODO: update the given obj in database.
+        try {
+            Statement p = con.createStatement();
+            String query=db.doesExist(obj);
+            ResultSet rs=p.executeQuery(query);
+            String val="";
+            while(rs.next())
+            {
+                val=rs.getString(1);
+            }
+            if(val.equals("0")){return false;}
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println("Error in updating object Message = "  + e);
+            return false;
+        }
+    }
+
+    public <T> Query<T> query(Class<T> cl){
+        if(!cl.isAnnotationPresent(Table.class)){
+            System.out.println("Object class "+cl.getSimpleName().toLowerCase() + " is not annotated with @Table.");
+            return null;
+        }
+        return new Query(cl,this.con);
     }
 }
